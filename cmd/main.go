@@ -34,7 +34,7 @@ func main() {
 
 	maxIdleConnsPerHost, err := strconv.Atoi(os.Getenv("MAX_IDLE_CONNS_PER_HOST"))
 	if err != nil || maxIdleConnsPerHost <= 0 {
-		maxIdleConnsPerHost = 1000 // default value
+		maxIdleConnsPerHost = 1000 
 	}
 
 	backendURL, err := url.Parse(backendURLStr)
