@@ -1,3 +1,4 @@
+// this is a simple HTTP reverse proxy server in Go that forwards requests to a backend server.
 package main
 
 import (
@@ -24,17 +25,17 @@ func main() {
 
 	listenAddr := os.Getenv("LISTEN_ADDR")
 	if listenAddr == "" {
-		listenAddr = ":8080" 
+		listenAddr = ":8080"
 	}
 
 	maxIdleConns, err := strconv.Atoi(os.Getenv("MAX_IDLE_CONNS"))
 	if err != nil || maxIdleConns <= 0 {
-		maxIdleConns = 1000 
+		maxIdleConns = 1000
 	}
 
 	maxIdleConnsPerHost, err := strconv.Atoi(os.Getenv("MAX_IDLE_CONNS_PER_HOST"))
 	if err != nil || maxIdleConnsPerHost <= 0 {
-		maxIdleConnsPerHost = 1000 
+		maxIdleConnsPerHost = 1000
 	}
 
 	backendURL, err := url.Parse(backendURLStr)
