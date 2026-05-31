@@ -4,13 +4,11 @@ package main
 import (
 	"log"
 	"net/http"
-	"net/http/httputil"
-	"net/url"
 	"os"
-	"strconv"
-	"time"
 
 	"github.com/joho/godotenv"
+
+	"proxy-server/internal/proxy"
 )
 
 func main() {
@@ -24,43 +22,23 @@ func main() {
 	}
 
 	listenAddr := os.Getenv("LISTEN_ADDR")
-	if listenAddr == "" {
-		listenAddr = ":8080"
-	}
+	maxIdleConnsStr := os.Getenv("MAX_IDLE_CONNS")
+	maxIdleConnsPerHostStr := os.Getenv("MAX_IDLE_CONNS_PER_HOST")
 
-	maxIdleConns, err := strconv.Atoi(os.Getenv("MAX_IDLE_CONNS"))
-	if err != nil || maxIdleConns <= 0 {
-		maxIdleConns = 1000
-	}
+	cfg := proxy.ParseConfig(listenAddr, backendURLStr, maxIdleConnsStr, maxIdleConnsPerHostStr)
 
-	maxIdleConnsPerHost, err := strconv.Atoi(os.Getenv("MAX_IDLE_CONNS_PER_HOST"))
-	if err != nil || maxIdleConnsPerHost <= 0 {
-		maxIdleConnsPerHost = 1000
-	}
-
-	backendURL, err := url.Parse(backendURLStr)
+	handler, err := proxy.NewProxy(cfg)
 	if err != nil {
-		log.Fatal("Invalid BACKEND_URL: ", err)
-	}
-
-	proxy := httputil.NewSingleHostReverseProxy(backendURL)
-
-	proxy.Transport = &http.Transport{
-		Proxy:                 http.ProxyFromEnvironment,
-		MaxIdleConns:          maxIdleConns,
-		MaxIdleConnsPerHost:   maxIdleConnsPerHost,
-		IdleConnTimeout:       90 * time.Second,
-		TLSHandshakeTimeout:   10 * time.Second,
-		ExpectContinueTimeout: 1 * time.Second,
+		log.Fatal("Failed to create proxy: ", err)
 	}
 
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		log.Printf("Proxying request: %s %s", r.Method, r.URL.String())
-		proxy.ServeHTTP(w, r)
+		handler.ServeHTTP(w, r)
 	})
 
-	log.Printf("Starting proxy server at %s forwarding to %s", listenAddr, backendURL.String())
-	if err := http.ListenAndServe(listenAddr, nil); err != nil {
+	log.Printf("Starting proxy server at %s forwarding to %s", cfg.ListenAddr, cfg.BackendURL)
+	if err := http.ListenAndServe(cfg.ListenAddr, nil); err != nil {
 		log.Fatal("ListenAndServe: ", err)
 	}
 }

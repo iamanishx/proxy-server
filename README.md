@@ -45,6 +45,40 @@ The proxy server is configured via environment variables loaded from a `.env` fi
    curl http://localhost:8080/any/path
    ```
 
+## Testing
+
+The project includes a comprehensive suite of integration tests that verify the proxy behavior end-to-end using `httptest.NewServer`.
+
+### Running Tests
+
+```bash
+# Run all tests
+make test
+
+# Run tests with verbose output
+go test -v ./...
+
+# Run tests with race detection
+go test -race ./...
+```
+
+### Test Coverage
+
+| Test                          | Description                                      |
+| ----------------------------- | ------------------------------------------------ |
+| `TestProxy_GetRequest`        | Basic HTTP GET forwarding                        |
+| `TestProxy_PostRequest`       | HTTP POST with body forwarding                   |
+| `TestProxy_PathPreservation`  | Request path is forwarded unchanged              |
+| `TestProxy_QueryParameters`   | Query string parameters are preserved            |
+| `TestProxy_HeaderForwarding`  | Custom headers are propagated to backend         |
+| `TestProxy_BackendUnavailable`| Returns 502 when backend is unreachable          |
+| `TestProxy_ConcurrentRequests`| 50 concurrent requests complete successfully     |
+| `TestProxy_LargePayload`      | 10 MB payload is forwarded without errors        |
+| `TestProxy_AllMethods`        | GET, POST, PUT, DELETE, PATCH all work           |
+| `TestProxy_ResponseHeaders`   | Backend response headers are proxied back        |
+| `TestProxy_ContentLength`     | Content-Length header is preserved               |
+| `TestParseConfig_*`           | Configuration parsing with defaults and edge cases|
+
 ## Makefile Targets
 
 | Target    | Description                              |
