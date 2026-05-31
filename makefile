@@ -23,6 +23,9 @@ run:
 test:
 	go test ./...
 
+test-integration:
+	go test -v -timeout 120s -count=1 ./...
+
 check: fmt vet tidy lint
 
 clean:
